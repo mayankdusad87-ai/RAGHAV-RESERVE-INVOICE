@@ -2,14 +2,25 @@ import streamlit as st
 import time
 
 from utils.styles import load_css
+
 from utils.database import (
     insert_invoice,
     supabase
 )
 
-st.set_page_config(layout="wide")
+# =====================================================
+# PAGE CONFIG
+# =====================================================
+
+st.set_page_config(
+    layout="wide"
+)
 
 load_css()
+
+# =====================================================
+# TITLE
+# =====================================================
 
 st.title("📤 Submit Invoice")
 
@@ -17,28 +28,35 @@ st.markdown(
     "### * Mandatory Fields"
 )
 
-# ==========================================
+# =====================================================
 # EMAIL
-# ==========================================
+# =====================================================
 
 vendor_email = st.text_input(
     "Vendor Email *"
 )
 
-# ==========================================
-# UPLOAD
-# ==========================================
+# =====================================================
+# UPLOAD OPTION
+# =====================================================
 
 upload_option = st.radio(
+
     "Choose Upload Method",
+
     [
         "📷 Capture From Camera",
         "📁 Upload File"
     ],
+
     horizontal=True
 )
 
 uploaded_file = None
+
+# =====================================================
+# CAMERA
+# =====================================================
 
 if upload_option == "📷 Capture From Camera":
 
@@ -46,10 +64,16 @@ if upload_option == "📷 Capture From Camera":
         "Take Invoice Photo"
     )
 
+# =====================================================
+# FILE UPLOAD
+# =====================================================
+
 else:
 
     uploaded_file = st.file_uploader(
+
         "Upload Invoice",
+
         type=[
             "pdf",
             "png",
@@ -59,9 +83,13 @@ else:
         ]
     )
 
-# ==========================================
-# DETAILS
-# ==========================================
+# =====================================================
+# DETAILS SECTION
+# =====================================================
+
+st.markdown("---")
+
+st.subheader("📄 Invoice Details")
 
 c1, c2 = st.columns(2)
 
@@ -82,7 +110,9 @@ with c2:
     )
 
     category = st.selectbox(
+
         "Category",
+
         [
             "Raw Material",
             "Transport",
@@ -93,25 +123,41 @@ with c2:
         ]
     )
 
-# ==========================================
-# FINANCIAL
-# ==========================================
+# =====================================================
+# FINANCIAL SECTION
+# =====================================================
+
+st.markdown("---")
+
+st.subheader("💰 Financial Details")
 
 f1, f2 = st.columns(2)
 
 with f1:
 
     invoice_amount = st.number_input(
+
         "Invoice Amount",
-        min_value=0.0
+
+        min_value=0.0,
+
+        step=1.0
     )
 
 with f2:
 
     gst_amount = st.number_input(
+
         "GST Amount",
-        min_value=0.0
+
+        min_value=0.0,
+
+        step=1.0
     )
+
+# =====================================================
+# TOTAL
+# =====================================================
 
 total_amount = (
     invoice_amount + gst_amount
@@ -121,13 +167,17 @@ st.success(
     f"Total Including GST: ₹ {total_amount:,.2f}"
 )
 
-# ==========================================
-# SUBMIT
-# ==========================================
+# =====================================================
+# SUBMIT BUTTON
+# =====================================================
 
-if st.button("Submit Invoice"):
+if st.button("🚀 Submit Invoice"):
 
     missing = []
+
+    # ==========================================
+    # VALIDATION
+    # ==========================================
 
     if not vendor_email:
         missing.append("Vendor Email")
@@ -137,6 +187,9 @@ if st.button("Submit Invoice"):
 
     if not invoice_number:
         missing.append("Invoice Number")
+
+    if not invoice_date:
+        missing.append("Invoice Date")
 
     if missing:
 
@@ -151,25 +204,59 @@ if st.button("Submit Invoice"):
 
             file_url = ""
 
+            # ======================================
+            # FILE UPLOAD
+            # ======================================
+
             if uploaded_file:
 
-                unique_name = (
-                    f"{int(time.time())}_"
-                    f"{uploaded_file.name}"
-                )
+                try:
 
-                supabase.storage.from_(
-                    "invoice-files"
-                ).upload(
-                    unique_name,
-                    uploaded_file.getvalue()
-                )
+                    unique_name = (
 
-                file_url = (
-                    f"{st.secrets['SUPABASE_URL']}"
-                    f"/storage/v1/object/public/"
-                    f"invoice-files/{unique_name}"
-                )
+                        f"{int(time.time())}_"
+                        f"{uploaded_file.name}"
+
+                    )
+
+                    upload_response = supabase.storage.from_(
+
+                        "invoice-files"
+
+                    ).upload(
+
+                        unique_name,
+
+                        uploaded_file.getvalue()
+
+                    )
+
+                    st.write(
+                        "Upload Response:",
+                        upload_response
+                    )
+
+                    file_url = (
+
+                        f"{st.secrets['SUPABASE_URL']}"
+                        f"/storage/v1/object/public/"
+                        f"invoice-files/{unique_name}"
+
+                    )
+
+                    st.success(
+                        "File uploaded successfully"
+                    )
+
+                except Exception as upload_error:
+
+                    st.error(
+                        f"File Upload Error: {upload_error}"
+                    )
+
+            # ======================================
+            # DATABASE DATA
+            # ======================================
 
             data = {
 
@@ -204,12 +291,28 @@ if st.button("Submit Invoice"):
                     file_url
             }
 
-            insert_invoice(data)
+            st.write(
+                "Data Being Inserted:",
+                data
+            )
+
+            # ======================================
+            # INSERT INTO DATABASE
+            # ======================================
+
+            response = insert_invoice(data)
+
+            st.write(
+                "Insert Response:",
+                response
+            )
 
             st.success(
-                "Invoice Submitted Successfully"
+                "✅ Invoice Submitted Successfully"
             )
 
         except Exception as e:
 
-            st.error(str(e))
+            st.error(
+                f"Main Error: {str(e)}"
+            )

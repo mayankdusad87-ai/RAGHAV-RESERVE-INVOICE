@@ -6,7 +6,7 @@ RESEND_API_KEY = st.secrets.get(
     ""
 )
 
-FROM_EMAIL = "finance@raghavreserv.com"
+FROM_EMAIL = "onboarding@resend.dev"
 
 # ==========================================
 # SEND EMAIL

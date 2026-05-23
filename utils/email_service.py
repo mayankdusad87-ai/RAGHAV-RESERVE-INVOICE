@@ -50,6 +50,7 @@ def send_email(
         json=payload
     )
 
+    print(response.text)
     return response.json()
 
 # ==========================================

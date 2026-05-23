@@ -6,7 +6,7 @@ from utils.styles import load_css
 # ==========================================
 
 st.set_page_config(
-    page_title="RAGHAV RESERV",
+    page_title="RAGHAV RESERVE",
     page_icon="🏢",
     layout="wide"
 )

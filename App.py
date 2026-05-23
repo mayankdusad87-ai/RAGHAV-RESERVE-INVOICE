@@ -20,7 +20,7 @@ load_css()
 st.markdown("""
 <div class="hero">
 
-<h1>🏢 RAGHAV RESERV</h1>
+<h1>🏢 RAGHAV RESERVE</h1>
 
 <h3>
 Enterprise Invoice Submission &

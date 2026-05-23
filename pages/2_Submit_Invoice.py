@@ -210,49 +210,32 @@ if st.button("🚀 Submit Invoice"):
 
             if uploaded_file:
 
-                try:
+                unique_name = (
 
-                    unique_name = (
+                    f"{int(time.time())}_"
+                    f"{uploaded_file.name}"
 
-                        f"{int(time.time())}_"
-                        f"{uploaded_file.name}"
+                )
 
-                    )
+                supabase.storage.from_(
 
-                    upload_response = supabase.storage.from_(
+                    "invoice-files"
 
-                        "invoice-files"
+                ).upload(
 
-                    ).upload(
+                    unique_name,
 
-                        unique_name,
+                    uploaded_file.getvalue()
 
-                        uploaded_file.getvalue()
+                )
 
-                    )
+                file_url = (
 
-                    st.write(
-                        "Upload Response:",
-                        upload_response
-                    )
+                    f"{st.secrets['SUPABASE_URL']}"
+                    f"/storage/v1/object/public/"
+                    f"invoice-files/{unique_name}"
 
-                    file_url = (
-
-                        f"{st.secrets['SUPABASE_URL']}"
-                        f"/storage/v1/object/public/"
-                        f"invoice-files/{unique_name}"
-
-                    )
-
-                    st.success(
-                        "File uploaded successfully"
-                    )
-
-                except Exception as upload_error:
-
-                    st.error(
-                        f"File Upload Error: {upload_error}"
-                    )
+                )
 
             # ======================================
             # DATABASE DATA
@@ -291,21 +274,11 @@ if st.button("🚀 Submit Invoice"):
                     file_url
             }
 
-            st.write(
-                "Data Being Inserted:",
-                data
-            )
-
             # ======================================
             # INSERT INTO DATABASE
             # ======================================
 
-            response = insert_invoice(data)
-
-            st.write(
-                "Insert Response:",
-                response
-            )
+            insert_invoice(data)
 
             st.success(
                 "✅ Invoice Submitted Successfully"
@@ -314,5 +287,5 @@ if st.button("🚀 Submit Invoice"):
         except Exception as e:
 
             st.error(
-                f"Main Error: {str(e)}"
+                f"Error: {str(e)}"
             )

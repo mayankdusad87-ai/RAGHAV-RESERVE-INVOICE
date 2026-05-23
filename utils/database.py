@@ -1,5 +1,6 @@
 from supabase import create_client
 import streamlit as st
+from datetime import datetime
 
 SUPABASE_URL = st.secrets["SUPABASE_URL"]
 SUPABASE_KEY = st.secrets["SUPABASE_KEY"]
@@ -52,13 +53,30 @@ def get_all_invoices():
 # UPDATE STATUS
 # ==========================================
 
-def update_status(invoice_id, status):
+def update_status(
+
+    invoice_id,
+    status,
+    rejection_reason="",
+    approved_by="Admin"
+
+):
 
     return supabase.table(
         "invoices"
     ).update({
 
-        "status": status
+        "status":
+            status,
+
+        "rejection_reason":
+            rejection_reason,
+
+        "approved_by":
+            approved_by,
+
+        "approval_date":
+            str(datetime.now())
 
     }).eq(
         "id",

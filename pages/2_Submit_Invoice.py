@@ -5,7 +5,8 @@ from utils.styles import load_css
 
 from utils.database import (
     insert_invoice,
-    supabase
+    supabase,
+    check_duplicate_invoice
 )
 
 # =====================================================
@@ -201,6 +202,35 @@ if st.button("🚀 Submit Invoice"):
     else:
 
         try:
+
+            # ======================================
+            # DUPLICATE CHECK
+            # ======================================
+
+            duplicate_check = check_duplicate_invoice(
+
+                vendor_email,
+                invoice_number
+
+            )
+
+            # ======================================
+            # BLOCK DUPLICATE
+            # ======================================
+
+            if duplicate_check["duplicate"]:
+
+                st.error(
+
+                    duplicate_check["message"]
+
+                )
+
+                st.stop()
+
+            # ======================================
+            # FILE URL
+            # ======================================
 
             file_url = ""
 

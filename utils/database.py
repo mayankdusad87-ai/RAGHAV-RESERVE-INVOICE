@@ -82,3 +82,80 @@ def update_status(
         "id",
         invoice_id
     ).execute()
+
+# ==========================================
+# CHECK DUPLICATE INVOICE
+# ==========================================
+
+def check_duplicate_invoice(
+
+    vendor_email,
+    invoice_number
+
+):
+
+    response = supabase.table(
+        "invoices"
+    ).select("*").eq(
+        "vendor_email",
+        vendor_email
+    ).eq(
+        "invoice_number",
+        invoice_number
+    ).execute()
+
+    # ======================================
+    # IF RECORD EXISTS
+    # ======================================
+
+    if response.data:
+
+        for row in response.data:
+
+            # --------------------------------
+            # BLOCK IF PENDING
+            # --------------------------------
+
+            if row["status"] == "Pending":
+
+                return {
+
+                    "duplicate": True,
+
+                    "message":
+                        "Invoice already submitted and pending approval."
+                }
+
+            # --------------------------------
+            # BLOCK IF APPROVED
+            # --------------------------------
+
+            elif row["status"] == "Approved":
+
+                return {
+
+                    "duplicate": True,
+
+                    "message":
+                        "Invoice already approved."
+                }
+
+            # --------------------------------
+            # ALLOW IF REJECTED
+            # --------------------------------
+
+            elif row["status"] == "Rejected":
+
+                return {
+
+                    "duplicate": False
+                }
+
+    # ======================================
+    # NO DUPLICATE FOUND
+    # ======================================
+
+    return {
+
+        "duplicate": False
+    }
